@@ -2,7 +2,7 @@
 
 from functools import reduce
 from group import GroupElement
-from braids import CanonicalBandPermutation
+from canonical_band_permutation import CanonicalBandPermutation
 from permutation import Permutation
 
 class Braid(GroupElement):
