@@ -1,12 +1,12 @@
 import collections
 
-from group import GroupElement
+from .group import GroupElement
 
 
 class Dihedral( GroupElement ):
     def __init__(self, obj=None, flip=0, n=None, *args, **kwargs):
         """Initialize element s^{flip} r_{obj} in D_{2n}."""
-        super(Dihedral, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
         if isinstance(obj, Dihedral):
             # Copy another permutation

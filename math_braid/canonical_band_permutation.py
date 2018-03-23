@@ -12,7 +12,6 @@ Lecture Notes in Computer Science (2001), 144--156.
 
 import re
 
-from group import GroupElement
 from sympy.combinatorics import Permutation
 
 class CanonicalBandPermutation(Permutation):

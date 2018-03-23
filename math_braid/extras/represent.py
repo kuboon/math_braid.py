@@ -8,7 +8,7 @@ import itertools
 from sympy import Matrix
 
 from modular import GLFinite, modularInverse, modularized
-from dihedral import IterDihedral, Dihedral
+from .dihedral import IterDihedral, Dihedral
 
 
 def findRepresentations(generators, relations, n, p):

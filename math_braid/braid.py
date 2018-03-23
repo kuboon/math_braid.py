@@ -1,10 +1,9 @@
 #!/usr/bin/python
 
 from functools import reduce
-from group import GroupElement
-from canonical_band_permutation import CanonicalBandPermutation
+from .canonical_band_permutation import CanonicalBandPermutation
 
-class Braid(GroupElement):
+class Braid:
     """
     Implements a braid in left-greedy normal form, e.g. D^p A_1 A_2 ... A_k
 
@@ -61,7 +60,7 @@ class Braid(GroupElement):
             4
 
         """
-        super(Braid, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         
         # Easy: Copy braid properties
         if isinstance(obj, Braid):
@@ -200,6 +199,17 @@ class Braid(GroupElement):
         # Combine information and construct the product
         a = [x.tau(other.p) for x in self.a] + other.a
         return Braid(a, n = self.n, p = self.p + other.p)
+
+    def __pow__(self, other):
+        """Compute self^other."""
+        try:
+            exponent = int(other)
+        except ValueError:
+            return NotImplemented
+        if exponent >= 0:
+            return reduce(self.__class__.__mul__, [self] * exponent, self.__class__())
+        else:
+            return reduce(self.__class__.__mul__, [~self] * -exponent)
 
     def __invert__(self):
         """

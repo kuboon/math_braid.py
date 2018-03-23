@@ -5,9 +5,7 @@
 from functools import reduce
 from abc import ABCMeta, abstractmethod
 
-class GroupElement(object): # class GroupElement(metaclass=ABCMeta):
-    __metaclass__ = ABCMeta
-
+class GroupElement(metaclass=ABCMeta):
     ######################
     # Required functions #
     ######################

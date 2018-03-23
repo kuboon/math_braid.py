@@ -6,7 +6,7 @@ from __future__ import print_function, division
 from functools import reduce
 import random, sys, math
 
-from braid import Braid
+from ..braid import Braid
 
 #############################
 # General-purpose functions #

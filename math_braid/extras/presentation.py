@@ -2,7 +2,7 @@
 
 """Methods for manipulating presentations of complement groups."""
 
-from braidextras import tally
+from .braidextras import tally
 
 def simplifyWord(word):
     """

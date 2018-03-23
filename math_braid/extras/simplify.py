@@ -6,7 +6,7 @@ from __future__ import print_function, division
 
 import sys, random
 import collections, operator, heapq
-from braidextras import complexity_mixed, lineout
+from .braidextras import complexity_mixed, lineout
 
 def factorization_twist(factors, i):
     """
