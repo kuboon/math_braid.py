@@ -2,6 +2,7 @@
 
 """Group element abstract base class."""
 
+from functools import reduce
 from abc import ABCMeta, abstractmethod
 
 class GroupElement(object): # class GroupElement(metaclass=ABCMeta):

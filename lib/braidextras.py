@@ -3,8 +3,10 @@
 """Extra functions for braids."""
 
 from __future__ import print_function, division
+from functools import reduce
 import random, sys, math
-from braids import LeftBraid
+
+from braid import Braid
 
 #############################
 # General-purpose functions #
@@ -105,7 +107,7 @@ def randomBraid(n=None):
     if n is None:
         n = random.randint(5, 20)
     k = random.randint(1, 100)
-    return LeftBraid([random.choice([1, -1]) * random.randrange(1, n) for i in range(0, k)], n)
+    return Braid([random.choice([1, -1]) * random.randrange(1, n) for i in range(0, k)], n)
 
 ####################################################
 # Geometry - braid monodromy factorization methods #
@@ -119,11 +121,11 @@ def numComponents(factorization):
     For a braid monodromy factorization corresponding to a surface S in R^4,
     the return value is the number of connected components of S.
 
-    >>> numComponents([LeftBraid([1],3)])
+    >>> numComponents([Braid([1],3)])
     2
-    >>> numComponents([LeftBraid([1],4)])
+    >>> numComponents([Braid([1],4)])
     3
-    >>> numComponents([LeftBraid([1],4), LeftBraid([2],4), LeftBraid([3],4)])
+    >>> numComponents([Braid([1],4), Braid([2],4), Braid([3],4)])
     1
 
     """
@@ -158,11 +160,11 @@ def numBoundaryComponents(factorization):
     For a braid monodromy factorization corresponding to a surface S in R^4,
     this is the number of boundary components of S.
 
-    >>> numBoundaryComponents([LeftBraid([1],3)])
+    >>> numBoundaryComponents([Braid([1],3)])
     2
-    >>> numBoundaryComponents([LeftBraid([1],4)])
+    >>> numBoundaryComponents([Braid([1],4)])
     3
-    >>> numBoundaryComponents([LeftBraid([1],2), LeftBraid([1],2)])
+    >>> numBoundaryComponents([Braid([1],2), Braid([1],2)])
     2
 
     """
@@ -183,7 +185,7 @@ def numBoundaryComponents(factorization):
 
 def getTwist(main_twist, conjugate_by, n):
     """Return the braid conjugate_by main_twist conjugate_by^{-1}."""
-    return LeftBraid( conjugate_by + [main_twist] + [-x for x in reversed(conjugate_by)], n)
+    return Braid( conjugate_by + [main_twist] + [-x for x in reversed(conjugate_by)], n)
 
 def getLoops(main_twist, conjugate_by):
     """
@@ -301,15 +303,15 @@ def getComplementGroup(twists, n):
 
 def bigdelta(n):
     """ Return the standard factorization of big Delta. """
-    return sum(([LeftBraid([x], n) for x in range(1, k)] for k in range(n, 1, -1)), [])
+    return sum(([Braid([x], n) for x in range(1, k)] for k in range(n, 1, -1)), [])
 
 def bigdelta_alt(n):
     """ Big Delta can also be factorized backwards. """
-    return sum(([LeftBraid([x], n) for x in range(k, 0, -1)] for k in range(1, n)), [])
+    return sum(([Braid([x], n) for x in range(k, 0, -1)] for k in range(1, n)), [])
 
 def bigdelta2(n):
     """ Return Delta^2 in a slightly different factorization. """
-    return n * [LeftBraid([x], n) for x in range(1, n)]
+    return n * [Braid([x], n) for x in range(1, n)]
 
 if __name__ == '__main__':
     import doctest

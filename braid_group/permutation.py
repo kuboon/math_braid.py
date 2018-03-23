@@ -3,7 +3,7 @@
 """Example implementation of permutation group S_n."""
 
 from __future__ import print_function
-
+from functools import reduce
 from group import GroupElement
 
 class Permutation(GroupElement):
@@ -56,7 +56,7 @@ class Permutation(GroupElement):
         elif obj is 1 or not obj:
             # Identity element
             self.n = 0
-            self.table = []
+            self.table = list()
         elif isinstance(obj, list):
             # Initialize from a list
             self.n = len(obj)
@@ -78,14 +78,14 @@ class Permutation(GroupElement):
         if self.n == 0:
             return key
         if not (0 <= int(key) < self.n):
-            raise KeyError, 'Index out of range.'
+            raise KeyError('Index out of range.')
         return self.table[key]
 
     def __setitem__(self, key, value):
         """Assign directly to the mapping table."""
         if self.n != 0:
             if not (0 <= int(key) < self.n):
-                raise KeyError, 'Index out of range.'
+                raise KeyError('Index out of range.')
         self.table[key] = value
 
     def __iter__(self):
@@ -111,7 +111,7 @@ class Permutation(GroupElement):
             return NotImplemented
 
         if other.n == 0:
-            return self.n == 0 or self.table == range(0, self.n)
+            return self.n == 0 or self.table == list(range(0, self.n))
         else:
             return self.table == other.table
     
@@ -124,7 +124,7 @@ class Permutation(GroupElement):
 
         # Initialize a list, and then permute it
         mapping = [0] * self.n
-        for i in xrange(0, self.n):
+        for i in range(0, self.n):
             # Break the abstraction barrier for some speed
             mapping[self.table[i]] = i
 
@@ -152,15 +152,15 @@ class Permutation(GroupElement):
 
         # Check compatibility and then multiply
         if self.n != ans.n:
-            raise TypeError, 'Incompatible operands'
+            raise TypeError('Incompatible operands')
         # Break the abstraction barrier for a little speed
-        ans.table = map(self.table.__getitem__, ans.table)
+        ans.table = list(map(list(self.table).__getitem__, ans.table))
 
         return ans
     
     def __nonzero__(self):
         """Nonzero test. Overridden because we can do it faster."""
-        return self.n != 0 and self.table != range(0, self.n)
+        return self.n != 0 and self.table != list(range(0, self.n))
     __bool__ = __nonzero__
 
 if __name__ == '__main__':
