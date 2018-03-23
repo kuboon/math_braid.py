@@ -3,7 +3,6 @@
 from functools import reduce
 from group import GroupElement
 from canonical_band_permutation import CanonicalBandPermutation
-from permutation import Permutation
 
 class Braid(GroupElement):
     """
@@ -331,7 +330,7 @@ class Braid(GroupElement):
     def getPermutation(self):
         """A diagnostic function."""
         if self.n == 0:
-            return Permutation()
+            return CanonicalBandPermutation()
         d = Braid.d(self.n)
         right = reduce(lambda x, y: x * y, self.a, Braid.CanonicalFactor(list(range(0, self.n))))
         return (d ** self.p) * right

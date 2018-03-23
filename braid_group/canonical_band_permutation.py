@@ -13,10 +13,46 @@ Lecture Notes in Computer Science (2001), 144--156.
 import re
 
 from group import GroupElement
-from permutation import Permutation
+from sympy.combinatorics import Permutation
 
 class CanonicalBandPermutation(Permutation):
-    """Canonical factor in the band-generator presentation."""
+    """
+    Canonical factor in the band-generator presentation.
+
+    >>> (Permutation([0, 2, 1]) * Permutation())
+    [0, 2, 1]
+    >>> (Permutation([0, 2, 1]) * Permutation([1,2,0]))
+    [1, 0, 2]
+
+    >>> x = CanonicalBandPermutation([0, 1, 3, 2, 4])
+    >>> y = CanonicalBandPermutation([2, 3, 4, 0, 1])
+    >>> z = CanonicalBandPermutation([1, 4, 0, 3, 2])
+
+    >>> x == y
+    False
+    >>> y != z
+    True
+    >>> x == x
+    True
+
+    >>> x ** 2 == []
+    True
+    >>> y ** 5 == []
+    True
+
+    >>> x * y
+    [3, 2, 4, 0, 1]
+    >>> y * x
+    [2, 3, 0, 4, 1]
+    >>> (~z)
+    [2, 0, 4, 3, 1]
+
+    >>> (x * y) * z == x * (y * z)
+    True
+    >>> y * z == z * y
+    False
+
+    """
 
     @classmethod
     def createFromPair(cls, pair, n):
@@ -43,8 +79,56 @@ class CanonicalBandPermutation(Permutation):
             lst = [n - 1] + list(range(0, n - 1))
             lst[pair[0] - 1] = (pair[1] - 2) % n
             lst[pair[1] - 1] = (pair[0] - 2) % n
-        return cls(lst)
+        return cls(lst, size = n)
     
+    @property
+    def n(self):
+        return self.size
+
+    @property
+    def table(self):
+        return self.array_form
+
+    def __str__(self):
+        return str(list(self))
+    __repr__ = __str__
+
+    def __mul__(self, other):
+        return Permutation.__mul__(other, self)
+
+    def __eq__(self, other):
+        """Equality test."""
+        try:
+            other = self.__class__(other)
+        except NotImplementedError:
+            return NotImplemented
+
+        if other.n == 0:
+            return self.n == 0 or self.table == list(range(0, self.n))
+        else:
+            return self.table == other.table
+
+    def __nonzero__(self):
+        """Nonzero test. Overridden because we can do it faster."""
+        return self.n != 0 and self.table != list(range(0, self.n))
+    __bool__ = __nonzero__
+
+    def __invert__(self):
+        """Inverse of an element."""
+
+        # Shortcut for identity
+        if self.n == 0:
+            return self.__class__(self)
+
+        # Initialize a list, and then permute it
+        mapping = [0] * self.n
+        for i in range(0, self.n):
+            # Break the abstraction barrier for some speed
+            mapping[self.table[i]] = i
+
+        return self.__class__(mapping)
+
+
     def tau(self, power=1):
         """
         Transformation A --> t(A) where AD = Dt(A).
@@ -116,19 +200,19 @@ class CanonicalBandPermutation(Permutation):
 
         >>> one = CanonicalBandPermutation([0, 2, 1, 3, 4])
         >>> one.computeCycles()
-        >>> one.cycles
+        >>> one.d_cycles
         [0, 2, 2, 3, 4]
         >>> two = CanonicalBandPermutation([6, 3, 1, 2, 0, 4, 5])
         >>> two.computeCycles()
-        >>> two.cycles
+        >>> two.d_cycles
         [6, 3, 3, 3, 6, 6, 6]
 
         """
         # Break the abstraction barrier for some speed
-        self.cycles = list(range(0, self.n))
+        self.d_cycles = list(range(0, self.n))
         for i in range(self.n - 1, -1, -1):
             if self.table[i] < i:
-                self.cycles[self.table[i]] = self.cycles[i]
+                self.d_cycles[self.table[i]] = self.d_cycles[i]
         return
 
     def meet(self, other):
@@ -172,25 +256,25 @@ class CanonicalBandPermutation(Permutation):
         # That version seemed to have a few confusing redundancies
         # Specifically, switching between 1...n and n...1 unnecessarily
         order = list(range(0, self.n))
-        order.sort(key = lambda x: (self.cycles[x], other.cycles[x]))
+        order.sort(key = lambda x: (self.d_cycles[x], other.d_cycles[x]))
         order.reverse()
 
         j = order[0]
-        cycles = [j] * self.n
+        d_cycles = [j] * self.n
         for x in order[1:]:
-            if self.cycles[j] != self.cycles[x] or other.cycles[j] != other.cycles[x]:
+            if self.d_cycles[j] != self.d_cycles[x] or other.d_cycles[j] != other.d_cycles[x]:
                 j = x
-            cycles[x] = j
+            d_cycles[x] = j
 
         # Convert the cycles back into a permutation
         prev = [-1] * self.n
         lst = [-1] * self.n
         for i in range(0, self.n):
-            if prev[cycles[i]] < 0:
-                lst[i] = cycles[i]
+            if prev[d_cycles[i]] < 0:
+                lst[i] = d_cycles[i]
             else:
-                lst[i] = prev[cycles[i]]
-            prev[cycles[i]] = i
+                lst[i] = prev[d_cycles[i]]
+            prev[d_cycles[i]] = i
 
         return self.__class__(lst)
 
