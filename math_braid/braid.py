@@ -1,5 +1,6 @@
 #!/usr/bin/python
 
+import re
 from functools import reduce
 from .canonical_band_permutation import CanonicalBandPermutation
 

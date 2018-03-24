@@ -8,3 +8,28 @@ Changes from original:
 - Built directory structures and packaged for pip.
 - Removed LeftBraid. just use Braid.
 
+# Usage
+
+```sh
+pip3 install math_braid
+```
+
+```python3
+from math_braind import Braid
+
+# Identity Element
+Braid([], 4)
+
+# Artin generation. num should be from 1 to 3
+Braid([1,2,3], 4)
+
+# Band generation. num should be from 1 to 4
+b = Braid([[3,1], [1,2]], 4); b
+
+# Length of Permutation
+b.k
+
+# inverse element
+~b
+
+```
