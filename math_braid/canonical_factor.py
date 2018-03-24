@@ -14,18 +14,18 @@ import re
 
 from sympy.combinatorics import Permutation
 
-class CanonicalBandPermutation(Permutation):
+class CanonicalFactor(Permutation):
     """
     Canonical factor in the band-generator presentation.
 
-    >>> (Permutation([0, 2, 1]) * Permutation())
-    [0, 2, 1]
-    >>> (Permutation([0, 2, 1]) * Permutation([1,2,0]))
-    [1, 0, 2]
+    >>> (CanonicalFactor([0, 2, 1]) * CanonicalFactor())
+    CanonicalFactor([0, 2, 1])
+    >>> (CanonicalFactor([0, 2, 1]) * CanonicalFactor([1,2,0]))
+    CanonicalFactor([2, 1, 0])
 
-    >>> x = CanonicalBandPermutation([0, 1, 3, 2, 4])
-    >>> y = CanonicalBandPermutation([2, 3, 4, 0, 1])
-    >>> z = CanonicalBandPermutation([1, 4, 0, 3, 2])
+    >>> x = CanonicalFactor([0, 1, 3, 2, 4])
+    >>> y = CanonicalFactor([2, 3, 4, 0, 1])
+    >>> z = CanonicalFactor([1, 4, 0, 3, 2])
 
     >>> x == y
     False
@@ -40,11 +40,11 @@ class CanonicalBandPermutation(Permutation):
     True
 
     >>> x * y
-    [3, 2, 4, 0, 1]
+    CanonicalFactor([3, 2, 4, 0, 1])
     >>> y * x
-    [2, 3, 0, 4, 1]
+    CanonicalFactor([2, 3, 0, 4, 1])
     >>> (~z)
-    [2, 0, 4, 3, 1]
+    CanonicalFactor([2, 0, 4, 3, 1])
 
     >>> (x * y) * z == x * (y * z)
     True
@@ -62,10 +62,10 @@ class CanonicalBandPermutation(Permutation):
         If a negative generator a^{-1} is represented,
             then return the permutation corresponding to Da^{-1}.
 
-        >>> CanonicalBandPermutation.createFromPair([5, 2], 7)
-        [0, 4, 2, 3, 1, 5, 6]
-        >>> CanonicalBandPermutation.createFromPair([2, 5], 7)
-        [6, 3, 1, 2, 0, 4, 5]
+        >>> CanonicalFactor.createFromPair([5, 2], 7)
+        CanonicalFactor([0, 4, 2, 3, 1, 5, 6])
+        >>> CanonicalFactor.createFromPair([2, 5], 7)
+        CanonicalFactor([6, 3, 1, 2, 0, 4, 5])
 
         """
         if pair[0] > pair[1]:
@@ -90,7 +90,8 @@ class CanonicalBandPermutation(Permutation):
 
     def __str__(self):
         return str(list(self))
-    __repr__ = __str__
+    def __repr__ (self):
+        return "CanonicalFactor(%s)" % str(self)
 
     def __mul__(self, other):
         return Permutation.__mul__(other, self)
@@ -135,10 +136,10 @@ class CanonicalBandPermutation(Permutation):
         That is, t(A) = D^{-1} A D.
         This function computes t^{power}(A).
 
-        >>> x = CanonicalBandPermutation([0, 4, 2, 3, 1, 5, 6])
-        >>> d = CanonicalBandPermutation([6, 0, 1, 2, 3, 4, 5])
+        >>> x = CanonicalFactor([0, 4, 2, 3, 1, 5, 6])
+        >>> d = CanonicalFactor([6, 0, 1, 2, 3, 4, 5])
         >>> x.tau()
-        [0, 1, 5, 3, 4, 2, 6]
+        CanonicalFactor([0, 1, 5, 3, 4, 2, 6])
         >>> x.tau(3) == d ** -3 * x * d ** 3
         True
         >>> x.tau(0) == x
@@ -153,7 +154,7 @@ class CanonicalBandPermutation(Permutation):
         """
         Count the band generators (transpositions) required to write this.
 
-        >>> from braid import Braid
+        >>> from .braid import Braid
         >>> b = Braid([1, 2, 1, 3, 3, 2, 3, 1, 2], 4)
         >>> all(len(x.getTranspositions()) == x.numTranspositions() for x in b.a)
         True
@@ -165,11 +166,11 @@ class CanonicalBandPermutation(Permutation):
         """
         Write a canonical factor as band generators.
 
-        >>> x = CanonicalBandPermutation([0, 4, 2, 3, 1, 5, 6])
+        >>> x = CanonicalFactor([0, 4, 2, 3, 1, 5, 6])
         >>> x.getTranspositions()
         [[5, 2]]
 
-        >>> from braid import Braid
+        >>> from .braid import Braid
         >>> b = Braid([1, 2, 1, 3, 3, 2, 3, 1, 2], 4)
         >>> c = [(Braid(x.getTranspositions(), 4), x) for x in b.a]
 
@@ -197,11 +198,11 @@ class CanonicalBandPermutation(Permutation):
 
         This method is a mutator.
 
-        >>> one = CanonicalBandPermutation([0, 2, 1, 3, 4])
+        >>> one = CanonicalFactor([0, 2, 1, 3, 4])
         >>> one.computeCycles()
         >>> one.d_cycles
         [0, 2, 2, 3, 4]
-        >>> two = CanonicalBandPermutation([6, 3, 1, 2, 0, 4, 5])
+        >>> two = CanonicalFactor([6, 3, 1, 2, 0, 4, 5])
         >>> two.computeCycles()
         >>> two.d_cycles
         [6, 3, 3, 3, 6, 6, 6]
@@ -219,13 +220,13 @@ class CanonicalBandPermutation(Permutation):
         Compute the meet, self /\ other:
         The max of all canonical factors smaller than both self and other.
 
-        >>> ident = CanonicalBandPermutation()
-        >>> one = CanonicalBandPermutation([0, 4, 2, 3, 1, 6, 5])
-        >>> two = CanonicalBandPermutation([0, 4, 3, 2, 1, 5, 6])
+        >>> ident = CanonicalFactor()
+        >>> one = CanonicalFactor([0, 4, 2, 3, 1, 6, 5])
+        >>> two = CanonicalFactor([0, 4, 3, 2, 1, 5, 6])
         >>> one.meet(two)
-        [0, 4, 2, 3, 1, 5, 6]
+        CanonicalFactor([0, 4, 2, 3, 1, 5, 6])
         >>> two.meet(one)
-        [0, 4, 2, 3, 1, 5, 6]
+        CanonicalFactor([0, 4, 2, 3, 1, 5, 6])
         >>> one.meet(one) == one
         True
         >>> two.meet(two) == two

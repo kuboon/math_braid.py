@@ -2,7 +2,7 @@
 
 import re
 from functools import reduce
-from .canonical_band_permutation import CanonicalBandPermutation
+from .canonical_factor import CanonicalFactor
 
 class Braid:
     """
@@ -23,7 +23,7 @@ class Braid:
         False
     """
 
-    CanonicalFactor = CanonicalBandPermutation
+    CanonicalFactor = CanonicalFactor
 
     def __init__(self, obj=None, n=None, p=None, *args, **kwargs):
         """
@@ -42,17 +42,23 @@ class Braid:
             a = list of canonical factors
             k = (read-only) length of list a
 
+        Constructors
+            >>> B[5]([[0,1,3,2,4],[0,3,2,4,1]])
+            B[5]([0, 4, 3, 2, 1], [0, 3, 2, 1, 4], 0)
+            >>> B[5]([[0,1,3,2,4],[0,3,2,4,1]], 1)
+            B[5]([0, 4, 3, 2, 1], [0, 3, 2, 1, 4], 1)
+
         Test that we at least permute the strands correctly
             >>> Braid([1, 2, -1, -2], 5).getPermutation()
-            [2, 0, 1, 3, 4]
+            CanonicalFactor([2, 0, 1, 3, 4])
             >>> Braid([-3], 5).getPermutation()
-            [0, 1, 3, 2, 4]
+            CanonicalFactor([0, 1, 3, 2, 4])
 
         Test identity elements
             >>> Braid([], 5).getPermutation()
-            [0, 1, 2, 3, 4]
+            CanonicalFactor([0, 1, 2, 3, 4])
             >>> Braid().getPermutation()
-            []
+            CanonicalFactor([])
 
         Check that we get the right number of factors
             >>> Braid([1, 2, -1, -2], 5).k
@@ -95,6 +101,9 @@ class Braid:
                     self.a = list(obj)
                 else:
                     raise NotImplementedError
+            elif isinstance(obj[0], list) and 2 < len(obj[0]) > 2:
+                self.p = p or 0
+                self.a = [Braid.CanonicalFactor(x) for x in obj]
             else:
                 # Starting from a word in generators
                 if isinstance(obj[0], list):
@@ -113,7 +122,7 @@ class Braid:
                             elif -n < x < 0:
                                 bandgens.append([-x, 1 - x])
                     else:
-                        raise NotImplementedError
+                        raise NotImplementedError(repr(obj))
                 # Now, bandgens is guaranteed to be a list of band generators
                 # We convert to canonical factors
                 # First, self.p counts the occurrences of negative generators
@@ -126,6 +135,7 @@ class Braid:
                 if bandgens[0][0] < bandgens[0][1]:
                     self.p -= 1
                 self.a = [Braid.CanonicalFactor.createFromPair(x, self.n) for x in bandgens]
+            
             # Now, self.a is guaranteed to be a list of canonical factors
             # Sort (sort of) this list
             l = len(self.a)
@@ -341,7 +351,7 @@ class Braid:
     def getPermutation(self):
         """A diagnostic function."""
         if self.n == 0:
-            return CanonicalBandPermutation()
+            return CanonicalFactor()
         d = Braid.d(self.n)
         right = reduce(lambda x, y: x * y, self.a, Braid.CanonicalFactor(list(range(0, self.n))))
         return (d ** self.p) * right
@@ -357,10 +367,15 @@ class Braid:
 
     def __str__(self):
         return '[%s] D^(%s) * %s' % (self.n, self.p, self.a)
-    __repr__ = __str__
+    def __repr__(self):
+        return 'B[%s](%s, %i)' % (self.n, ", ".join(map(str, self.a)), self.p)
 
 
-class _BraidConstructorIndex(object):
+class _BraidConstructorIndex:
+    """
+    >>> Braid([-3], 5) == B[5]([-3])
+    True
+    """
     def __getitem__(self, key):
         return lambda obj=None, p=None, *args, **kwargs: Braid(obj, *args, n=key, p=p, **kwargs)
 B = _BraidConstructorIndex()

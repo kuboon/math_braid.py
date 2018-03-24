@@ -1,1 +1,1 @@
-from .braid import Braid
+from .braid import Braid, B
