@@ -333,17 +333,17 @@ class Braid:
         A diagnostic function.
 
         Test that we at least permute the strands correctly
-            >>> Braid([1, 2, -1, -2], 5).getPermutation()
-            CanonicalFactor([2, 0, 1, 3, 4])
+            >>> Braid([1], 5).getPermutation()
+            Permutation(4)(0, 1)
 
         Test identity elements
             >>> Braid([], 5).getPermutation()
-            CanonicalFactor([0, 1, 2, 3, 4])
+            Permutation(4)
             >>> Braid().getPermutation()
-            CanonicalFactor([])
+            Permutation()
         """
         if self.n == 0:
-            return CanonicalFactor()
+            return Permutation()
         d = Braid.d(self.n)
         right = reduce(
             lambda x, y: x * y,
@@ -368,7 +368,11 @@ class Braid:
                        for a in self.a[:self.p]) + sum(a.numTranspositions() for a in self.a[self.p:])
 
     def __str__(self):
-        return '[%s] D^(%s) * %s' % (self.n, self.p, self.a)
+        '''
+        >>> str(Braid([-3,2], 5))
+        '[5] D^(-1) * [4, 0, 2, 1, 3] * [0, 2, 1, 3, 4]'
+        '''
+        return '[%s] D^(%s) * %s' % (self.n, self.p, " * ".join(map(str, self.a)))
 
     def __repr__(self):
         return 'B[%s]([%s], %i)' % (self.n, ", ".join(map(str, self.a)), self.p)
