@@ -1,5 +1,6 @@
 #!/usr/bin/python
 
+import random
 from functools import reduce
 from sympy.combinatorics import Permutation
 from .canonical_factor import CanonicalFactor
@@ -23,6 +24,30 @@ class Braid:
 
     """
 
+    _d = {}
+
+    @classmethod
+    def d(cls, n):
+        """The fundamental factor D (lowercase delta here) in B_n."""
+        if n not in cls._d:
+            cls._d[n] = cls.CanonicalFactor([n - 1] + list(range(0, n - 1)))
+        return cls._d[n]
+
+    @classmethod
+    def random(cls, n=None, p=None):
+        '''
+        >>> Braid.random(10, 20).k
+        20
+        '''
+        if n is None: n = random.randint(5, 20) 
+        if p is None: p = random.randint(5, 100)
+        a = []
+        for i in range(0, p):
+            x = list(range(0, n))
+            random.shuffle(x)
+            a.append(x)
+        return Braid(a, n)
+
     CanonicalFactor = CanonicalFactor
 
     def __init__(self, obj=None, n=None, p=None, *args, **kwargs):
@@ -35,6 +60,11 @@ class Braid:
             * A list of Artin generators, given as integers (obj)
             * A list of band generators, given as 2-element lists (obj)
             * The result of str(some braid)
+
+        Cloning
+            >>> b = Braid([-3, 1], 5)
+            >>> Braid(b) == b
+            True
 
         Permutation list construction
             >>> B[5]([[0,1,3,2,4],[0,3,2,4,1]])
@@ -190,12 +220,8 @@ class Braid:
         a = [x.tau(other.p) for x in self.a] + other.a
         return Braid(a, n=self.n, p=self.p + other.p)
 
-    def __pow__(self, other):
+    def __pow__(self, exponent):
         """Compute self^other."""
-        try:
-            exponent = int(other)
-        except ValueError:
-            return NotImplemented
         if exponent >= 0:
             return reduce(
                 self.__class__.__mul__,
@@ -285,15 +311,6 @@ class Braid:
         generator[1] = (generator[1] - 1) % n + 1
         if positivity != (generator[0] > generator[1]):
             generator.reverse()
-
-    _d = {}
-
-    @classmethod
-    def d(cls, n):
-        """The fundamental factor D (lowercase delta here) in B_n."""
-        if n not in cls._d:
-            cls._d[n] = cls.CanonicalFactor([n - 1] + list(range(0, n - 1)))
-        return cls._d[n]
 
     def _get_k(self):
         """Return the length of the canonical factor list."""
