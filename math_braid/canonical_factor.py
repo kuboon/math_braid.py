@@ -10,7 +10,9 @@ Lecture Notes in Computer Science (2001), 144--156.
 
 """
 
-from sympy.combinatorics import Permutation
+# This is compatible but the constructor of sympy Permutaton is too slow.
+# from sympy.combinatorics import Permutation
+from .permutation import Permutation
 
 
 class CanonicalFactor(Permutation):
@@ -85,10 +87,6 @@ class CanonicalFactor(Permutation):
     def n(self):
         return self.size
 
-    @property
-    def table(self):
-        return self.array_form
-
     def __str__(self):
         return str(list(self))
 
@@ -106,13 +104,13 @@ class CanonicalFactor(Permutation):
             return NotImplemented
 
         if other.n == 0:
-            return self.n == 0 or self.table == list(range(0, self.n))
+            return self.n == 0 or self.array_form == list(range(0, self.n))
         else:
-            return self.table == other.table
+            return self.array_form == other.array_form
 
     def __nonzero__(self):
         """Nonzero test. Overridden because we can do it faster."""
-        return self.n != 0 and self.table != list(range(0, self.n))
+        return self.n != 0 and self.array_form != list(range(0, self.n))
     __bool__ = __nonzero__
 
     def __invert__(self):
@@ -126,7 +124,7 @@ class CanonicalFactor(Permutation):
         mapping = [0] * self.n
         for i in range(0, self.n):
             # Break the abstraction barrier for some speed
-            mapping[self.table[i]] = i
+            mapping[self.array_form[i]] = i
 
         return self.__class__(mapping)
 
@@ -148,7 +146,7 @@ class CanonicalFactor(Permutation):
 
         """
         return self.__class__([
-            (self.table[(i - power) % self.n] + power) % self.n
+            (self.array_form[(i - power) % self.n] + power) % self.n
             for i in range(0, self.n)])
 
     def numTranspositions(self):
@@ -161,7 +159,7 @@ class CanonicalFactor(Permutation):
         True
 
         """
-        return len([None for i in range(0, self.n) if self.table[i] < i])
+        return len([None for i in range(0, self.n) if self.array_form[i] < i])
 
     def getTranspositions(self):
         """
@@ -187,7 +185,7 @@ class CanonicalFactor(Permutation):
 
         """
         ans = []
-        for i, v in enumerate(self.table):
+        for i, v in enumerate(self.array_form):
             if v < i:
                 ans.append([i + 1, v + 1])
         ans.reverse()
@@ -212,8 +210,8 @@ class CanonicalFactor(Permutation):
         # Break the abstraction barrier for some speed
         self.d_cycles = list(range(0, self.n))
         for i in range(self.n - 1, -1, -1):
-            if self.table[i] < i:
-                self.d_cycles[self.table[i]] = self.d_cycles[i]
+            if self.array_form[i] < i:
+                self.d_cycles[self.array_form[i]] = self.d_cycles[i]
         return
 
     def meet(self, other):

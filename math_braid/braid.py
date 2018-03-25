@@ -348,11 +348,7 @@ class Braid:
         right = reduce(
             lambda x, y: x * y,
             self.a,
-            Permutation(
-                list(
-                    range(
-                        0,
-                        self.n))))
+            Permutation(list(range(0, self.n))))
         return (d ** self.p) * right
 
     def numMixedTranspositions(self):
