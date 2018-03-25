@@ -1,1 +1,1 @@
-from .braid import Braid, B
+from .braid import Braid, B  # noqa: F401
