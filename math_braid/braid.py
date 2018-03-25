@@ -55,7 +55,6 @@ class Braid:
             B[5]([[1, 0, 2, 3, 4]], 0)
 
         """
-        super().__init__(*args, **kwargs)
 
         # Easy: Copy braid properties
         if isinstance(obj, Braid):
@@ -76,85 +75,91 @@ class Braid:
                     self.a = list(obj)
                 else:
                     raise NotImplementedError
-            elif isinstance(obj[0], list) and 2 < len(obj[0]) > 2:
+            elif isinstance(obj[0], list) and 2 < len(obj[0]):
                 self.p = p or 0
                 self.a = [Braid.CanonicalFactor(x) for x in obj]
             else:
-                # Starting from a word in generators
-                if isinstance(obj[0], list):
-                    # Copy list of band generators so we can modify in place
-                    if len(obj[0]) == 2:
-                        bandgens = list(obj)
-                    else:
-                        raise NotImplementedError
-                else:
-                    # Convert Artin generators to band generators
-                    if isinstance(obj[0], int):
-                        bandgens = []
-                        for x in obj:
-                            if 0 < x < n:
-                                bandgens.append([x + 1, x])
-                            elif -n < x < 0:
-                                bandgens.append([-x, 1 - x])
-                    else:
-                        raise NotImplementedError(repr(obj))
-                # Now, bandgens is guaranteed to be a list of band generators
-                # We convert to canonical factors
-                # First, self.p counts the occurrences of negative generators
-                self.p = 0
-                for i in range(len(bandgens) - 2, -1, -1):
-                    if bandgens[i + 1][0] < bandgens[i + 1][1]:
-                        self.p -= 1
-                    Braid._tauband(bandgens[i], self.n, self.p)
-                # Don't forget to check the first (leftmost) generator!
-                if bandgens[0][0] < bandgens[0][1]:
-                    self.p -= 1
-                self.a = [
-                    Braid.CanonicalFactor.createFromPair(
-                        x, self.n) for x in bandgens]
+                self.__createFromArtinOrBand(obj)
 
             # Now, self.a is guaranteed to be a list of canonical factors
             # Sort (sort of) this list
-            leftmost = -1
-            rightmost = len(self.a) - 2
-            while leftmost < rightmost:
-                newleft = rightmost
-                for j in range(rightmost, leftmost, -1):
-                    # I know the paper by Cha et al says d * ~self.a[j]
-                    # But I think our permutations mean different things
-                    # And the paper without pseudocode does it this way.
-                    b = (~self.a[j] * Braid.d(self.n)).meet(self.a[j + 1])
-                    if b:
-                        # Shift b one factor to the left
-                        newleft = j
-                        a_jplus = ~b * self.a[j + 1]
-                        # Keep track of identity elements
-                        if a_jplus:
-                            self.a[j + 1] = a_jplus
-                        else:
-                            if rightmost == j:
-                                rightmost -= 1
-                            self.a[j + 1] = Braid.CanonicalFactor()
-                        self.a[j] = self.a[j] * b
-                leftmost = newleft
-            # Clean up the list of canonical factors
-            # Cut out the identity elements from the right
-            a_len = rightmost + 2
-            del self.a[a_len:]
-            while a_len > 0 and not self.a[-1]:
-                del self.a[-1]
-                a_len -= 1
-            # Cut out copies of D from the left
-            while a_len > 0 and self.a[0] == Braid.d(self.n):
-                del self.a[0]
-                a_len -= 1
-                self.p += 1
+            self.__cleanUpFactors()
         elif obj is 1 or not obj:
             self.n = n or 0
             self.p = 0
             self.a = []
         else:
             raise NotImplementedError
+
+    def __createFromArtinOrBand(self, obj):
+        # Starting from a word in generators
+        if isinstance(obj[0], list):
+            # Copy list of band generators so we can modify in place
+            if len(obj[0]) == 2:
+                bandgens = list(obj)
+            else:
+                raise NotImplementedError
+        else:
+            # Convert Artin generators to band generators
+            if isinstance(obj[0], int):
+                bandgens = []
+                for x in obj:
+                    if 0 < x < self.n:
+                        bandgens.append([x + 1, x])
+                    elif -self.n < x < 0:
+                        bandgens.append([-x, 1 - x])
+            else:
+                raise NotImplementedError(repr(obj))
+        # Now, bandgens is guaranteed to be a list of band generators
+        # We convert to canonical factors
+        # First, self.p counts the occurrences of negative generators
+        self.p = 0
+        for i in range(len(bandgens) - 2, -1, -1):
+            if bandgens[i + 1][0] < bandgens[i + 1][1]:
+                self.p -= 1
+            Braid._tauband(bandgens[i], self.n, self.p)
+        # Don't forget to check the first (leftmost) generator!
+        if bandgens[0][0] < bandgens[0][1]:
+            self.p -= 1
+        self.a = [
+            Braid.CanonicalFactor.createFromPair(x, self.n)
+            for x in bandgens]
+
+    def __cleanUpFactors(self):
+        leftmost = -1
+        rightmost = len(self.a) - 2
+        while leftmost < rightmost:
+            newleft = rightmost
+            for j in range(rightmost, leftmost, -1):
+                # I know the paper by Cha et al says d * ~self.a[j]
+                # But I think our permutations mean different things
+                # And the paper without pseudocode does it this way.
+                b = (~self.a[j] * Braid.d(self.n)).meet(self.a[j + 1])
+                if b:
+                    # Shift b one factor to the left
+                    newleft = j
+                    a_jplus = ~b * self.a[j + 1]
+                    # Keep track of identity elements
+                    if a_jplus:
+                        self.a[j + 1] = a_jplus
+                    else:
+                        if rightmost == j:
+                            rightmost -= 1
+                        self.a[j + 1] = Braid.CanonicalFactor()
+                    self.a[j] = self.a[j] * b
+            leftmost = newleft
+        # Clean up the list of canonical factors
+        # Cut out the identity elements from the right
+        a_len = rightmost + 2
+        del self.a[a_len:]
+        while a_len > 0 and not self.a[-1]:
+            del self.a[-1]
+            a_len -= 1
+        # Cut out copies of D from the left
+        while a_len > 0 and self.a[0] == Braid.d(self.n):
+            del self.a[0]
+            a_len -= 1
+            self.p += 1
 
     ####################
     # Group Arithmetic #
