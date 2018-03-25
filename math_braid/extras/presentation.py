@@ -4,6 +4,7 @@
 
 from .braidextras import tally
 
+
 def simplifyWord(word):
     """
     Perform cancellations in a word.
@@ -31,6 +32,7 @@ def simplifyWord(word):
         word = new_word
     return word
 
+
 def trimPresentation(generators, relations):
     """Trim a presentation."""
     def _findIsolated(rel):
@@ -40,6 +42,7 @@ def trimPresentation(generators, relations):
             if count == 1:
                 return x
         return None
+
     def _simplifyRel(rel):
         """Simplify a relation."""
         ans = simplifyWord(rel)
@@ -47,6 +50,7 @@ def trimPresentation(generators, relations):
         while len(ans) > 1 and ans[0] == -ans[-1]:
             ans = ans[1:-1]
         return ans
+
     def _expandRel(rel, target, replacement):
         """
         Expand target (a generator) to its replacement.

@@ -10,9 +10,8 @@ Lecture Notes in Computer Science (2001), 144--156.
 
 """
 
-import re
-
 from sympy.combinatorics import Permutation
+
 
 class CanonicalFactor(Permutation):
     """
@@ -78,8 +77,10 @@ class CanonicalFactor(Permutation):
             lst = [n - 1] + list(range(0, n - 1))
             lst[pair[0] - 1] = (pair[1] - 2) % n
             lst[pair[1] - 1] = (pair[0] - 2) % n
-        return cls(lst, size = n)
-    
+        else:
+            lst = list(range(0, n))
+        return cls(lst, size=n)
+
     @property
     def n(self):
         return self.size
@@ -90,7 +91,8 @@ class CanonicalFactor(Permutation):
 
     def __str__(self):
         return str(list(self))
-    def __repr__ (self):
+
+    def __repr__(self):
         return "CanonicalFactor(%s)" % str(self)
 
     def __mul__(self, other):
@@ -128,7 +130,6 @@ class CanonicalFactor(Permutation):
 
         return self.__class__(mapping)
 
-
     def tau(self, power=1):
         """
         Transformation A --> t(A) where AD = Dt(A).
@@ -160,7 +161,7 @@ class CanonicalFactor(Permutation):
         True
 
         """
-        return len([None for i in range( 0, self.n ) if self.table[i] < i])
+        return len([None for i in range(0, self.n) if self.table[i] < i])
 
     def getTranspositions(self):
         """
@@ -256,7 +257,7 @@ class CanonicalFactor(Permutation):
         # That version seemed to have a few confusing redundancies
         # Specifically, switching between 1...n and n...1 unnecessarily
         order = list(range(0, self.n))
-        order.sort(key = lambda x: (self.d_cycles[x], other.d_cycles[x]))
+        order.sort(key=lambda x: (self.d_cycles[x], other.d_cycles[x]))
         order.reverse()
 
         j = order[0]

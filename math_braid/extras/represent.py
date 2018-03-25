@@ -2,7 +2,6 @@
 
 """Methods for manipulating representations in GL(n, F_p) for p prime."""
 
-import collections
 import itertools
 
 from sympy import Matrix
@@ -15,9 +14,9 @@ def findRepresentations(generators, relations, n, p):
     """Find all representations of the given presentation in GL(n, F_p)."""
     ans = []
     eye = Matrix(n, n, lambda i, j: i == j and 1 or 0)
-    indexmap = dict((x,i) for i,x in enumerate(generators))
+    indexmap = dict((x, i) for i, x in enumerate(generators))
     # Check all possible combinations
-    #groups = [GLFinite(n, p) for x in generators]
+    # groups = [GLFinite(n, p) for x in generators]
     for images in itertools.product(GLFinite(n, p), repeat=len(generators)):
         # Check each relation
         violated = False
@@ -39,11 +38,12 @@ def findRepresentations(generators, relations, n, p):
             ans.append(images)
     return ans
 
+
 def findDihedral(generators, relations, n):
     """Find all homomorphisms to the dihedral group of order 2n."""
     ans = []
     eye = Dihedral()
-    indexmap = dict((x,i) for i,x in enumerate(generators))
+    indexmap = dict((x, i) for i, x in enumerate(generators))
     # Check all possible combinations
     for images in itertools.product(IterDihedral(n), repeat=len(generators)):
         # Check each relation

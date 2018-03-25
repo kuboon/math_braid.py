@@ -18,11 +18,14 @@ def finiteInverse(a, p):
         x, y = [z[1], y[1] - z[0] * x[1], y[2] - z[0] * x[2]], x
     return x[1] % p
 
+
 def modularized(m, p):
     return m.applyfunc(lambda x: x % p)
 
+
 def modularInverse(m, p):
     return modularized(m.adjugate() * finiteInverse(m.det(), p), p)
+
 
 class GLFinite(collections.Iterator):
     """
@@ -32,11 +35,12 @@ class GLFinite(collections.Iterator):
     Ensuring that is foisted on the user.
 
     """
+
     def __init__(self, n, p):
         self.n = n
         self.n2 = self.n ** 2
         self.p = p
-        self._current = Matrix(n, n, lambda i,j: 0)
+        self._current = Matrix(n, n, lambda i, j: 0)
 
     def next(self):
         # There's almost certainly a smarter way to do this.
@@ -46,9 +50,11 @@ class GLFinite(collections.Iterator):
                 if self._current[i] == self.p:
                     self._current[i] = 0
                     try:
-                        self._current[i+1] += 1
+                        self._current[i + 1] += 1
                     except IndexError:
-                        raise StopIteration("GL(%s,F_%s) exhausted" % (self.n, self.p))
+                        raise StopIteration(
+                            "GL(%s,F_%s) exhausted" %
+                            (self.n, self.p))
                 else:
                     break
             if self._current.det() % self.p != 0:

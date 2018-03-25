@@ -4,7 +4,9 @@
 
 from __future__ import print_function, division
 from functools import reduce
-import random, sys, math
+import random
+import sys
+import math
 
 from ..braid import Braid
 
@@ -12,20 +14,26 @@ from ..braid import Braid
 # General-purpose functions #
 #############################
 
+
 class _lineout(object):
     """Produces a function like print, except it replaces the last line."""
+
     def __init__(self, dest=sys.stdout, end='\n'):
         self.dest = dest
         self.end = end
         self.lastlen = 0
+
     def __call__(self, s):
         print('\b \b' * self.lastlen, s, sep='', end='', file=self.dest)
         self.dest.flush()
         self.lastlen = len(s) - s.rfind(self.end) - 1
+
     def nextline(self):
         print(self.end, end='', file=self.dest)
         self.dest.flush()
         self.lastlen = 0
+
+
 lineout = _lineout()
 wordout = _lineout(end=' ')
 
@@ -33,11 +41,13 @@ wordout = _lineout(end=' ')
 # Arithmetic functions #
 ########################
 
+
 def tally(things):
     ans = {}
     for thing in things:
         ans[thing] = ans.get(thing, 0) + 1
     return ans
+
 
 def product(lst):
     """Idiom for multiplying all the elements in a list."""
@@ -45,34 +55,37 @@ def product(lst):
         return 1
     return reduce(lambda x, y: x * y, lst)
 
-def mean( lst ):
+
+def mean(lst):
     """
     Calculate the average of the entries in a list.
-    
+
     >>> mean([1, 2, 3, 4])
     2.5
 
     """
     return sum(lst) / len(lst)
 
+
 def stdev(lst, bessel=True):
     """
     Calculate standard deviation of the entries in a list.
     By default, assume it's a sample and apply Bessel's correction.
-    
+
     >>> stdev([1, 2], bessel=False)
     0.5
 
     """
-    m = mean( lst )
-    denom = len( lst )
+    m = mean(lst)
+    denom = len(lst)
     if bessel:
         denom -= 1
-    return math.sqrt( sum( [ ( x - m ) ** 2 for x in lst ] ) / denom )
+    return math.sqrt(sum([(x - m) ** 2 for x in lst]) / denom)
 
 #########################
 # Extra braid functions #
 #########################
+
 
 def complexity_canonical(lst):
     """
@@ -83,6 +96,7 @@ def complexity_canonical(lst):
     """
     return sum(abs(b.p) + b.k for b in lst)
 
+
 def complexity_transpositions(lst):
     """
     Complexity of a list of braids
@@ -90,7 +104,8 @@ def complexity_transpositions(lst):
     measured as the number of transpositions in its normal form.
 
     """
-    return sum(( b.n - 1 ) * abs( b.p ) + sum( [ a.numTranspositions() for a in b.a ] ) for b in lst)
+    return sum((b.n - 1) * abs(b.p) + sum([a.numTranspositions() for a in b.a]) for b in lst)
+
 
 def complexity_mixed(lst):
     """
@@ -102,16 +117,19 @@ def complexity_mixed(lst):
     """
     return sum(b.numMixedTranspositions() for b in lst)
 
+
 def randomBraid(n=None):
     """Returns a random braid with 5-20 strands and 1-100 twists."""
     if n is None:
         n = random.randint(5, 20)
     k = random.randint(1, 100)
-    return Braid([random.choice([1, -1]) * random.randrange(1, n) for i in range(0, k)], n)
+    return Braid([random.choice([1, -1]) * random.randrange(1, n)
+                  for i in range(0, k)], n)
 
 ####################################################
 # Geometry - braid monodromy factorization methods #
 ####################################################
+
 
 def numComponents(factorization):
     """
@@ -135,6 +153,7 @@ def numComponents(factorization):
     # A component number n+i means "use the component number of string i"
     n = factorization[0].n
     components = [i for i in range(n)]
+
     def _getComponent(i):
         x = n + i
         while x >= n:
@@ -142,13 +161,14 @@ def numComponents(factorization):
         return x
     # Loop through braids in the factorization, unioning components
     for braid in factorization:
-        p = braid.getPermutation()
+        p = list(braid.getPermutation())
         for i in range(n):
             c1 = _getComponent(i)
             c2 = _getComponent(p[i])
             if c1 != c2:
                 components[c2] = c1 + n
     return len(set(_getComponent(i) for i in range(n)))
+
 
 def numBoundaryComponents(factorization):
     """
@@ -170,7 +190,7 @@ def numBoundaryComponents(factorization):
     """
     if len(factorization) == 0:
         return 0
-    p = product(factorization).getPermutation()
+    p = list(product(factorization).getPermutation())
     n = len(p)
     components = [i for i in range(n)]
     for i in range(n):
@@ -183,9 +203,12 @@ def numBoundaryComponents(factorization):
             x = p[x]
     return len(set(components))
 
+
 def getTwist(main_twist, conjugate_by, n):
     """Return the braid conjugate_by main_twist conjugate_by^{-1}."""
-    return Braid( conjugate_by + [main_twist] + [-x for x in reversed(conjugate_by)], n)
+    return Braid(conjugate_by + [main_twist] +
+                 [-x for x in reversed(conjugate_by)], n)
+
 
 def getLoops(main_twist, conjugate_by):
     """
@@ -219,7 +242,7 @@ def getLoops(main_twist, conjugate_by):
     paths = [[main_twist + 1, -main_twist], [main_twist + 2, -main_twist - 1]]
     for twist in reversed(conjugate_by):
         for i in range(len(paths)):
-            l = []
+            a = []
             # Modify passes
             for x in paths[i]:
                 # The cases happened to collapse just right to use abs(x)
@@ -228,13 +251,14 @@ def getLoops(main_twist, conjugate_by):
                     # twist < 0 : positive is a clockwise twist
                     # twist > 0 : positive is an anticlockwise twist
                     if twist < 0:
-                        l.extend([x+1, -x, x-1])
+                        a.extend([x + 1, -x, x - 1])
                     else:
-                        l.extend([x-1, -x, x+1])
+                        a.extend([x - 1, -x, x + 1])
                 else:
-                    l.append(x)
-            paths[i] = l
+                    a.append(x)
+            paths[i] = a
     return paths
+
 
 def loopToWord(loop):
     """
@@ -275,6 +299,7 @@ def loopToWord(loop):
         ans.extend(range(up, down, -1))
     return ans
 
+
 def getComplementGroup(twists, n):
     """
     twists -> a surface -> complement group -> presentation
@@ -289,29 +314,36 @@ def getComplementGroup(twists, n):
 
     """
     if len(twists) == 0:
-        return [[],[]]
+        return [[], []]
     generators = range(1, n + 1)
     relations = []
     for twist in twists:
         loops = getLoops(*twist)
-        relations.append( loopToWord(loops[0]) + [-x for x in reversed(loopToWord(loops[1]))] )
+        relations.append(loopToWord(
+            loops[0]) + [-x for x in reversed(loopToWord(loops[1]))])
     return [generators, relations]
 
 ################################
 # Generate some factorizations #
 ################################
 
+
 def bigdelta(n):
     """ Return the standard factorization of big Delta. """
-    return sum(([Braid([x], n) for x in range(1, k)] for k in range(n, 1, -1)), [])
+    return sum(([Braid([x], n) for x in range(1, k)]
+                for k in range(n, 1, -1)), [])
+
 
 def bigdelta_alt(n):
     """ Big Delta can also be factorized backwards. """
-    return sum(([Braid([x], n) for x in range(k, 0, -1)] for k in range(1, n)), [])
+    return sum(([Braid([x], n) for x in range(k, 0, -1)]
+                for k in range(1, n)), [])
+
 
 def bigdelta2(n):
     """ Return Delta^2 in a slightly different factorization. """
     return n * [Braid([x], n) for x in range(1, n)]
+
 
 if __name__ == '__main__':
     import doctest

@@ -3,7 +3,7 @@ import collections
 from .group import GroupElement
 
 
-class Dihedral( GroupElement ):
+class Dihedral(GroupElement):
     def __init__(self, obj=None, flip=0, n=None, *args, **kwargs):
         """Initialize element s^{flip} r_{obj} in D_{2n}."""
         super().__init__(*args, **kwargs)
@@ -54,12 +54,12 @@ class Dihedral( GroupElement ):
             other = self.__class__(other)
         except NotImplementedError:
             return NotImplemented
-        
+
         if other.n == 0:
             return self.n == 0 or self.i == self.flip == 0
         else:
             ans = (self.n, self.i, self.flip) == (other.n, other.i, other.flip)
-            print ans
+            print(ans)
             return ans
 
     def __invert__(self):
@@ -73,16 +73,16 @@ class Dihedral( GroupElement ):
             ans = self.__class__(other)
         except NotImplementedError:
             return NotImplemented
-        
+
         # Shortcut for identity elements
         if self.n == 0:
             return ans
         if ans.n == 0:
             return self.__class__(self)
-        
+
         # Check compatibility and then multiply
         if self.n != ans.n:
-            raise TypeError, 'Incompatible operands'
+            raise TypeError('Incompatible operands')
         if ans.flip:
             ans.i -= self.i
         else:
@@ -93,12 +93,15 @@ class Dihedral( GroupElement ):
 
         return ans
 
+
 class IterDihedral(collections.Iterator):
     """ Iterator over all elements of D_2n. """
+
     def __init__(self, n):
         self.n = n
         self._current = Dihedral(0, flip=0, n=n)
         self._current.i -= 1
+
     def next(self):
         self._current.i += 1
         if self._current.i == self.n:

@@ -5,6 +5,7 @@
 from functools import reduce
 from abc import ABCMeta, abstractmethod
 
+
 class GroupElement(metaclass=ABCMeta):
     ######################
     # Required functions #
@@ -38,7 +39,7 @@ class GroupElement(metaclass=ABCMeta):
 
         """
         return self.__ne__(self.__class__())
-    __bool__ = __nonzero__ # Preparing for python 3.0 compatibility
+    __bool__ = __nonzero__  # Preparing for python 3.0 compatibility
 
     def __ne__(self, other):
         """Not-equal test. Default: be consistent with __eq__."""
@@ -52,7 +53,7 @@ class GroupElement(metaclass=ABCMeta):
         """Multiply other * self. Default: be consistent with __mul__."""
         try:
             return self.__class__(other).__mul__(self)
-        except:
+        except BaseException:
             return NotImplemented
 
     def __pow__(self, other):
@@ -62,6 +63,9 @@ class GroupElement(metaclass=ABCMeta):
         except ValueError:
             return NotImplemented
         if exponent >= 0:
-            return reduce(self.__class__.__mul__, [self] * exponent, self.__class__())
+            return reduce(
+                self.__class__.__mul__,
+                [self] * exponent,
+                self.__class__())
         else:
             return reduce(self.__class__.__mul__, [~self] * -exponent)
