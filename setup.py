@@ -3,7 +3,7 @@ from setuptools import setup
 setup(
     name='math_braid',
     packages=["math_braid", "math_braid.extras"],
-    version='0.5',
+    version='0.6',
     description='Pure python braid group implementation based on sympy.',
     long_description='''Pure python braid group implementation based on sympy.
     Original code is here: http://www-math.mit.edu/~seidel/geng/

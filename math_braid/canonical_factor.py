@@ -83,6 +83,23 @@ class CanonicalFactor(Permutation):
             lst = list(range(0, n))
         return cls(lst, size=n)
 
+    @classmethod
+    def createFromDcycle(cls, d_cycles):
+        # Convert the cycles back into a permutation
+        n = len(d_cycles)
+        prev = [-1] * n
+        lst = [-1] * n
+        for i in range(0, n):
+            if prev[d_cycles[i]] < 0:
+                lst[i] = d_cycles[i]
+            else:
+                lst[i] = prev[d_cycles[i]]
+            prev[d_cycles[i]] = i
+
+        new = cls(lst)
+        new._d_cycles = d_cycles
+        return new
+
     @property
     def n(self):
         return self.size
@@ -191,28 +208,29 @@ class CanonicalFactor(Permutation):
         ans.reverse()
         return ans
 
-    def computeCycles(self):
+    @property
+    def d_cycles(self):
         """
         Compute the maxima of a permutation's descending cycles.
 
         This method is a mutator.
 
         >>> one = CanonicalFactor([0, 2, 1, 3, 4])
-        >>> one.computeCycles()
         >>> one.d_cycles
         [0, 2, 2, 3, 4]
         >>> two = CanonicalFactor([6, 3, 1, 2, 0, 4, 5])
-        >>> two.computeCycles()
         >>> two.d_cycles
         [6, 3, 3, 3, 6, 6, 6]
 
         """
-        # Break the abstraction barrier for some speed
-        self.d_cycles = list(range(0, self.n))
-        for i in range(self.n - 1, -1, -1):
-            if self.array_form[i] < i:
-                self.d_cycles[self.array_form[i]] = self.d_cycles[i]
-        return
+        try:
+            self._d_cycles
+        except AttributeError:
+            self._d_cycles = list(range(0, self.n))
+            for i in range(self.n - 1, -1, -1):
+                if self.array_form[i] < i:
+                    self._d_cycles[self.array_form[i]] = self._d_cycles[i]
+        return self._d_cycles
 
     def meet(self, other):
         """
@@ -247,10 +265,6 @@ class CanonicalFactor(Permutation):
         if self.n != other.n:
             return NotImplemented
 
-        # Compute descending-cycle maxima
-        self.computeCycles()
-        other.computeCycles()
-
         # This part isn't written exactly as given in the paper
         # That version seemed to have a few confusing redundancies
         # Specifically, switching between 1...n and n...1 unnecessarily
@@ -265,17 +279,7 @@ class CanonicalFactor(Permutation):
                 j = x
             d_cycles[x] = j
 
-        # Convert the cycles back into a permutation
-        prev = [-1] * self.n
-        lst = [-1] * self.n
-        for i in range(0, self.n):
-            if prev[d_cycles[i]] < 0:
-                lst[i] = d_cycles[i]
-            else:
-                lst[i] = prev[d_cycles[i]]
-            prev[d_cycles[i]] = i
-
-        return self.__class__(lst)
+        return self.__class__.createFromDcycle(d_cycles)
 
 
 if __name__ == '__main__':

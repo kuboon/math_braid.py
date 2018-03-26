@@ -41,8 +41,10 @@ class Braid:
         >>> b * ~b == B[N]() or [b, ~b]
         True
         '''
-        if n is None: n = random.randint(5, 20) 
-        if p is None: p = random.randint(5, 100)
+        if n is None:
+            n = random.randint(5, 20)
+        if p is None:
+            p = random.randint(5, 100)
         a = []
         for i in range(0, p):
             '''
