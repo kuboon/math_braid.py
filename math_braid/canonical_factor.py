@@ -224,7 +224,7 @@ class CanonicalFactor(Permutation):
 
         """
         try:
-            self._d_cycles
+            return self._d_cycles
         except AttributeError:
             self._d_cycles = list(range(0, self.n))
             for i in range(self.n - 1, -1, -1):
@@ -265,17 +265,19 @@ class CanonicalFactor(Permutation):
         if self.n != other.n:
             return NotImplemented
 
+        self_d_cycles = self.d_cycles
+        other_d_cycles = other.d_cycles
         # This part isn't written exactly as given in the paper
         # That version seemed to have a few confusing redundancies
         # Specifically, switching between 1...n and n...1 unnecessarily
         order = list(range(0, self.n))
-        order.sort(key=lambda x: (self.d_cycles[x], other.d_cycles[x]))
+        order.sort(key=lambda x: (self_d_cycles[x], other_d_cycles[x]))
         order.reverse()
 
         j = order[0]
         d_cycles = [j] * self.n
         for x in order[1:]:
-            if self.d_cycles[j] != self.d_cycles[x] or other.d_cycles[j] != other.d_cycles[x]:
+            if self_d_cycles[j] != self_d_cycles[x] or other_d_cycles[j] != other_d_cycles[x]:
                 j = x
             d_cycles[x] = j
 

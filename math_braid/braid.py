@@ -15,13 +15,6 @@ class Braid:
         p: power of fundamental element D in left canonical form
         k: number of canonical factors (implemented via a getter)
         a: list of canonical factors
-
-    Check that we get the right number of factors
-        >>> Braid([1, 2, -1, -2], 5).k
-        2
-        >>> Braid([1, 2, -1, 2], 5).k
-        4
-
     """
 
     _d = {}
@@ -54,8 +47,8 @@ class Braid:
             random.shuffle(x)
             a.append(x)
             '''
-            x = random.randint(1,n)
-            y = random.randint(1,n)
+            x = random.randint(1, n)
+            y = random.randint(1, n)
             a.append([x, y])
         return Braid(a, n)
 
@@ -102,6 +95,7 @@ class Braid:
             self.n = obj.n
             self.p = obj.p
             self.a = list(obj.a)
+            self.clean = obj.clean
         elif isinstance(obj, list) and n is not None:
             self.n = n
             # Quick exit for identity elements and powers of D
@@ -121,14 +115,13 @@ class Braid:
                 self.a = [Braid.CanonicalFactor(x) for x in obj]
             else:
                 self.__createFromArtinOrBand(obj)
+            self.clean = False
 
-            # Now, self.a is guaranteed to be a list of canonical factors
-            # Sort (sort of) this list
-            self.__cleanUpFactors()
         elif obj is 1 or not obj:
             self.n = n or 0
             self.p = 0
             self.a = []
+            self.clean = True
         else:
             raise NotImplementedError
 
@@ -166,29 +159,42 @@ class Braid:
             Braid.CanonicalFactor.createFromPair(x, self.n)
             for x in bandgens]
 
-    def __cleanUpFactors(self):
+    def cleanUpFactors(self):
+        if self.clean:
+            return
+        self.clean = True
+
         leftmost = -1
         rightmost = len(self.a) - 2
+        meets = [None] * len(self)
         while leftmost < rightmost:
             newleft = rightmost
             for j in range(rightmost, leftmost, -1):
                 # I know the paper by Cha et al says d * ~self.a[j]
                 # But I think our permutations mean different things
                 # And the paper without pseudocode does it this way.
-                b = (~self.a[j] * Braid.d(self.n)).meet(self.a[j + 1])
-                if b:
+                if meets[j] is None:
+                    meets[j] = (~self.a[j] * Braid.d(self.n)).meet(self.a[j + 1])
+                if meets[j]:
                     # Shift b one factor to the left
                     newleft = j
-                    a_jplus = ~b * self.a[j + 1]
-                    # Keep track of identity elements
-                    if a_jplus:
-                        self.a[j + 1] = a_jplus
-                    else:
-                        if rightmost == j:
-                            rightmost -= 1
-                        self.a[j + 1] = Braid.CanonicalFactor()
-                    self.a[j] = self.a[j] * b
+                    self.a[j + 1] = ~meets[j] * self.a[j + 1]
+                    self.a[j] = self.a[j] * meets[j]
+
+                    if not self.a[j + 1] and rightmost == j:
+                        rightmost -= 1
+                    meets[j + 1] = None
+                    meets[j] = None
+                    meets[j-1] = None
             leftmost = newleft
+
+            # (3, 0),
+            # (2, 0),
+            # (1, CanonicalFactor([4, 1, 2, 0, 3])),
+            # (0, CanonicalFactor([4, 0, 2, 1, 3])),
+            # (3, 0),
+            # (2, CanonicalFactor([1, 0, 2, 3, 4]))]
+
         # Clean up the list of canonical factors
         # Cut out the identity elements from the right
         a_len = rightmost + 2
@@ -285,10 +291,13 @@ class Braid:
             return NotImplemented
         if self.n != other.n:
             return NotImplemented
+        self.cleanUpFactors()
+        other.cleanUpFactors()
         return self.n == other.n and self.p == other.p and self.a == other.a
 
     def __nonzero__(self):
         """Override the default boolean casting, since we have a fast way."""
+        self.cleanUpFactors()
         return self.p != 0 or self.k != 0
     __bool__ = __nonzero__
 
@@ -323,10 +332,13 @@ class Braid:
         if positivity != (generator[0] > generator[1]):
             generator.reverse()
 
-    def _get_k(self):
+    def __len__(self):
         """Return the length of the canonical factor list."""
         return len(self.a)
-    k = property(_get_k)
+
+    @property
+    def k(self):
+        return len(self)
 
     def twist(self, i):
         """
@@ -338,6 +350,8 @@ class Braid:
         >>> a.twist(2).twist(-2) == a
         True
         >>> a.twist(2).twist(-3) == a * Braid([2, -3], 5)
+        True
+        >>> a.twist(-1) == a * B[5]([-1])
         True
 
         This tests that it leaves the original unchanged
@@ -377,11 +391,11 @@ class Braid:
         """
         if self.n == 0:
             return Permutation()
-        d = Braid.d(self.n)
         right = reduce(
             lambda x, y: x * y,
             self.a,
             Permutation(list(range(0, self.n))))
+        d = Braid.d(self.n)
         return (d ** self.p) * right
 
     def numMixedTranspositions(self):
@@ -401,9 +415,11 @@ class Braid:
         >>> str(Braid([-3,2], 5))
         '[5] D^(-1) * [4, 0, 2, 1, 3] * [0, 2, 1, 3, 4]'
         '''
+        self.cleanUpFactors()
         return '[%s] D^(%s) * %s' % (self.n, self.p, " * ".join(map(str, self.a)))
 
     def __repr__(self):
+        self.cleanUpFactors()
         return 'B[%s]([%s], %i)' % (self.n, ", ".join(map(str, self.a)), self.p)
 
 
