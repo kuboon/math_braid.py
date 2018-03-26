@@ -36,16 +36,25 @@ class Braid:
     @classmethod
     def random(cls, n=None, p=None):
         '''
-        >>> Braid.random(10, 20).k
-        20
+        >>> N = 5
+        >>> b=Braid.random(N, 1)
+        >>> b * ~b == B[N]() or [b, ~b]
+        True
         '''
         if n is None: n = random.randint(5, 20) 
         if p is None: p = random.randint(5, 100)
         a = []
         for i in range(0, p):
+            '''
+            I tried this and found that it didn't work.
+            Should be compatible with band presentation.
             x = list(range(0, n))
             random.shuffle(x)
             a.append(x)
+            '''
+            x = random.randint(1,n)
+            y = random.randint(1,n)
+            a.append([x, y])
         return Braid(a, n)
 
     CanonicalFactor = CanonicalFactor
