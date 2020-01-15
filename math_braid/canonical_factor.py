@@ -139,9 +139,9 @@ class CanonicalFactor(Permutation):
 
         # Initialize a list, and then permute it
         mapping = [0] * self.n
-        for i in range(0, self.n):
+        for i, j in enumerate(self.array_form):
             # Break the abstraction barrier for some speed
-            mapping[self.array_form[i]] = i
+            mapping[j] = i
 
         return self.__class__(mapping)
 
